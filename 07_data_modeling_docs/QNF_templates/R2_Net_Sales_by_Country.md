@@ -1,4 +1,4 @@
-## QNF: R2 — Net Revenue Ex-VAT by Country
+# QNF: R2 — Net Revenue Ex-VAT by Country
 
 **Business Question**
 What is the total **net revenue excluding VAT** generated in each country (UAE vs KSA) per calendar month?
