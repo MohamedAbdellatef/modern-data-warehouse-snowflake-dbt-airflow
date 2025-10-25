@@ -1,6 +1,8 @@
-# QNF: R3 — Orders by Payment Method (Monthly) v1.2
+# QNF: R3 — Orders by Payment Method (Monthly)
 
-**Question**: How many **completed orders** per **payment method** each **calendar month**?
+**Business Question**: 
+How many **completed orders** per **payment method** each **calendar month**?
+
 **Owner / Decision**: Operations — payment mix readiness.
 
 **Metric (formula)**
