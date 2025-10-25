@@ -1,90 +1,91 @@
-# Business Context — GulfMart Retail Data Warehouse
+### Business Context — GulfMart Retail Data Warehouse
 
-## 1. Company Overview
-**GulfMart Retail Group** is a mid-size omni-channel retailer operating in **United Arab Emirates 🇦🇪** and **Saudi Arabia 🇸🇦**.  
-The company manages more than 80 stores across Riyadh, Jeddah, Dammam, Dubai, Abu Dhabi, and Sharjah, selling electronics, fashion, and home-appliance products through both physical stores and an online marketplace.
-
-**Headquarters:** Dubai  
-**Currencies:** AED (🇦🇪) & SAR (🇸🇦)  
-**VAT:** 5 % UAE · 15 % KSA  
-**Fiscal calendar:** Gregorian / Monthly close T + 2  
-**Timezone policy:** All operational reporting aligns to **Asia/Riyadh (UTC + 3)**.
-
----
-
-## 2. Business Problem
-
-GulfMart’s leadership faces inconsistent and delayed reporting because data is scattered across multiple systems:
-
-| Challenge | Impact |
-|------------|---------|
-| **Fragmented data sources** (POS, e-commerce, CRM, inventory) | No single version of truth |
-| **Inconsistent VAT & currency handling** | Finance numbers differ across regions |
-| **Manual Excel-based reporting** | BI refresh takes days, not hours |
-| **No historical tracking** | Customer and product changes lost over time |
-
-Executives and regional managers currently rely on disconnected Excel files and inconsistent KPIs, making it impossible to have a unified view of performance across countries.
-As a result, store managers, finance teams, and marketing analysts cannot make timely, data-driven decisions.
+**1. Company Overview**
+GulfMart Retail Group is a mid-size omni-channel retailer in **UAE 🇦🇪** and **KSA 🇸🇦** (80+ stores across Riyadh, Jeddah, Dammam, Dubai, Abu Dhabi, Sharjah; channels: stores + marketplace).
+**HQ:** Dubai · 
+**Currencies:** AED/SAR · 
+**VAT:** UAE 5%, KSA 15% · 
+**Fiscal:** Gregorian, monthly close T+2.
+**Time policy:** **Store-local time** for operational facts;
+**HQ roll-ups** at **Asia/Riyadh (UTC+3)**.
 
 ---
 
-## 3. Warehouse Objective
+**2. Business Problem**
+Disparate POS, e-commerce, CRM, and inventory systems cause slow, inconsistent reporting.
 
-Build a **Modern Cloud Data Warehouse** to deliver a **single trusted source of truth** for sales, revenue (ex-VAT), and customer analytics across both UAE and KSA.
-
-### Key Goals
-1. **Unify** sales, customer, and store data from all systems.  
-2. **Automate** daily refresh (T + 1 @ 06:00 Asia/Riyadh).  
-3. **Standardize** VAT and currency logic.  
-4. **Model** facts & dimensions using **Kimball methodology** (STG → CORE → MARTS).  
-5. **Enable** near-real-time Power BI dashboards for Operations, Finance, and Marketing.
-
----
-
-## 4. Stakeholders & Use Cases
-
-| Department | Example Questions (QNFs) | Consumes From |
-|-------------|--------------------------|---------------|
-| **Operations** | How many completed orders per month by store? Which stores underperform? | `sales_monthly_by_store` mart |
-| **Finance** | What is net revenue ex-VAT by country and currency? | `revenue_by_country` mart |
-| **Marketing / CRM** | Who are the top 10 customers this quarter? How many active customers each month? | `dim_customer`, `fact_order` |
-| **BI Team** | Can dashboards refresh daily without manual prep? | MARTS layer |
-| **IT / Data Engineering** | Are pipelines auditable and recoverable? | RAW + STG layers, Airflow + dbt metadata |
+| Challenge                          | Impact                        |
+| ---------------------------------- | ----------------------------- |
+| Fragmented sources                 | No single source of truth     |
+| Inconsistent VAT/currency handling | Finance numbers don’t match   |
+| Manual Excel pipelines             | BI refresh takes days         |
+| No slowly changing history         | Customer/product changes lost |
 
 ---
 
-## 5. Technical Vision
+**3. Warehouse Objective**
+Deliver a **single trusted source of truth** for Sales/Revenue (ex-VAT) and Customer analytics across UAE & KSA.
 
-| Layer | Tool / Tech | Purpose |
-|--------|--------------|----------|
-| **Ingestion** | **Airflow / ADF** | Extract CSV & API data → ADLS Gen2 |
-| **Storage (RAW)** | **ADLS Gen2 → Snowflake RAW schema** | Immutable landing zone |
-| **Transformation** | **dbt on Snowflake** | Build STG, CORE (facts/dims), MARTS |
-| **Orchestration** | **Airflow** | Automate daily load, run dbt + tests |
-| **Quality & Lineage** | **dbt tests + docs** | not-null, unique, relationships |
-| **Analytics** | **Power BI / Tableau** | Visualize KPIs for business users |
+**Goals**
 
----
-
-## 6. Core KPIs (Business Questions)
-
-| ID | KPI / Metric | Definition |
-|----|---------------|-------------|
-| **R1** | Monthly Orders by Store | COUNT(DISTINCT order_id) per month per store |
-| **R2** | Net Revenue Ex-VAT by Country | SUM(total_amount / 1.05 or / 1.15) |
-| **R3** | Top 10 Customers by Spend | SUM(total_amount) GROUP BY customer |
-| **R4** | Active Customers per Month | COUNT(DISTINCT customer_id WHERE orders ≥ 1) |
-| **R5** | Orders by Payment Method | COUNT BY payment_method |
-| **R6** | Store Performance Index | (Revenue vs Target) × Footfall |
+1. **Unify** sales, customer, store data.
+2. **Automate** daily refresh **T+1 @ 06:00 Asia/Riyadh (03:00 UTC)**.
+3. **Standardize** VAT and currency rules; optional FX consolidation.
+4. **Model** with **Kimball** (RAW→STG→CORE→MARTS).
+5. **Enable** Power BI dashboards for Operations, Finance, Marketing.
 
 ---
 
-## 7. Refresh & Governance
+**4. Stakeholders & Use Cases**
 
-- **Schedule:** Airflow DAG runs daily @ 05:30 UTC (08:30 Dubai / 07:30 Riyadh)  
-- **Pipeline:** Extract → ADLS → Snowflake RAW → dbt Transform → Power BI Refresh  
-- **Data Quality:** dbt tests + Airflow alerts on failure  
-- **Governance:** Snowflake Unity Catalog roles (`RAW_READ`, `CORE_WRITE`, `BI_READ`)  
-- **Documentation:** dbt Docs + Architecture Diagram (`05_docs/architecture.png`)
-- **Access Control:** Snowflake roles are separated by purpose (WH_INGEST, WH_DBT, WH_BI) to ensure cost control and least-privilege access
+| Dept          | Example Questions                                     | Consumes                   |
+| ------------- | ----------------------------------------------------- | -------------------------- |
+| Operations    | Which stores underperform month-to-month?             | `sales_monthly_by_store`   |
+| Finance       | What is **net revenue (ex-VAT)** by country/currency? | `revenue_by_country`       |
+| Marketing/CRM | Top 10 customers by AED spend this quarter?           | `dim_customer`, sales mart |
+| BI            | Can dashboards refresh daily without manual steps?    | MARTS                      |
+| Data Eng      | Are loads auditable/replayable?                       | RAW + STG, lineage tests   |
+
+---
+
+**5. Technical Vision**
+
+| Layer             | Tech                          | Purpose                                       |
+| ----------------- | ----------------------------- | --------------------------------------------- |
+| Ingestion         | Airflow/ADF + COPY/Snowpipe   | Land to ADLS → load to Snowflake RAW          |
+| Storage           | ADLS Gen2 + **Snowflake RAW** | Immutable, lineaged copy                      |
+| Transform         | **dbt on Snowflake**          | STG (clean), CORE (facts/dims), MARTS (stars) |
+| Orchestration     | Airflow                       | Schedule dbt + tests                          |
+| Quality & Lineage | dbt tests/docs                | not_null, unique, relationships, freshness    |
+| Analytics         | Power BI/Tableau              | Business consumption                          |
+
+**Governance & Security**
+
+* **Roles:** `INGESTOR`, `TRANSFORMER`, `BI_READER` (least privilege).
+* **Warehouses:** `WH_INGEST`, `WH_DBT`, `WH_BI` (auto-suspend).
+* **Policies:** **Masking** (PII), **Row Access** (country scoping), **Object Tags** (classification).
+
+---
+
+**6. Core KPIs (clear definitions)**
+
+| ID     | KPI                                   | Definition                                                                                                                                                |
+| ------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1** | Monthly **Completed Orders** by Store | `COUNT(DISTINCT order_id)` where order_status in (‘Completed’, ‘Fulfilled’), grouped by store & calendar_month (store-local).                             |
+| **R2** | **Net Revenue (ex-VAT)** by Country   | `SUM(net_amount)` where `net_amount = gross_amount − vat_amount`; amounts in **store currency**; provide **AED-consolidated** via daily FX at order_date. |
+| **R3** | **Top 10 Customers by Spend (AED)**   | Rank customers by `SUM(net_amount_in_AED)` for the period.                                                                                                |
+| **R4** | **Active Customers per Month**        | `COUNT(DISTINCT customer_id)` with ≥1 completed order in that month.                                                                                      |
+| **R5** | **Payments by Method**                | From `fact_payment`: `COUNT(*)` by `payment_method` for completed payments.                                                                               |
+| **R6** | **Store Performance Index (SPI)**     | Provisional: `(net_revenue / monthly_target) * (orders / footfall)`; to be finalized with Ops.                                                            |
+
+---
+
+**7. Refresh & Governance**
+
+* **Schedule:** Airflow daily at **03:00 UTC** (**06:00 Riyadh / 07:00 Dubai**).
+* **Pipeline:** Extract → ADLS → Snowflake **RAW** → dbt (STG/CORE/MARTS) → BI refresh.
+* **DQ:** dbt tests (unique/not_null/relationships/freshness) + reconciliation checks.
+* **Runbooks:** failure alerts, backfill from RAW, warehouse autosuspend.
+* **Docs:** dbt Docs + `/docs/architecture.png`.
+
 ---
