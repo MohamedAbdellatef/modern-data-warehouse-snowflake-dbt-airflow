@@ -1,4 +1,4 @@
-# QNF: R7 — Active Customers per Month
+# QNF: C1 — Active Customers per Month
 
 **Question**: How many **unique customers** had **≥1 completed order** per **calendar month**?
 **Owner / Decision**: Ops & CRM — footprint, engagement, retention.
