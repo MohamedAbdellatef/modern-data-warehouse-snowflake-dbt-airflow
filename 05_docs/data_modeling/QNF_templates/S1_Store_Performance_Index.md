@@ -1,4 +1,4 @@
-# 🟢 QNF: S1 — Store Performance Index (Monthly)
+# QNF: S1 — Store Performance Index (Monthly)
 
 **Business Question**
 What percentage of the **monthly revenue target** did each **physical store** achieve in the given **calendar month**?
