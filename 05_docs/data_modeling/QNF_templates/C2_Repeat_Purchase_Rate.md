@@ -1,4 +1,4 @@
-# QNF: R8 — Repeat Purchase Rate (Monthly)
+# QNF: C2 — Repeat Purchase Rate (Monthly)
 
 **Question:**  
 What **percentage of active customers** in a given **calendar month** are **repeat customers** (i.e., have purchased in any prior month)?
