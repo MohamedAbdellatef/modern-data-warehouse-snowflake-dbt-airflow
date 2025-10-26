@@ -1,4 +1,4 @@
-# 🟢 QNF: S2 — Revenue vs Target Gap (Monthly) 
+# QNF: S2 — Revenue vs Target Gap (Monthly) 
 
 **QNF-ID**: S2-Revenue-vs-Target-Gap-Monthly
 **Business Question**
