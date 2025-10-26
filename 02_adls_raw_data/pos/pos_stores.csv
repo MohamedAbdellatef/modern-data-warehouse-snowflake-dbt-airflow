@@ -1,0 +1,9 @@
+store_id,store_code,store_name,city,country,currency_code,timezone,store_type,open_date,source_system
+2000,UAE2000,Dubai Mall,Dubai,UAE,AED,Asia/Dubai,PHYSICAL,2023-01-01,POS
+2001,UAE2001,Abu Dhabi Mall,Abu Dhabi,UAE,AED,Asia/Dubai,PHYSICAL,2023-01-01,POS
+2002,UAE2002,Sharjah Mall,Sharjah,UAE,AED,Asia/Dubai,PHYSICAL,2023-01-01,POS
+2003,KSA2003,Riyadh Gallery,Riyadh,KSA,SAR,Asia/Riyadh,PHYSICAL,2023-01-01,POS
+2004,KSA2004,Jeddah Gallery,Jeddah,KSA,SAR,Asia/Riyadh,PHYSICAL,2023-01-01,POS
+2005,KSA2005,Dammam Gallery,Dammam,KSA,SAR,Asia/Riyadh,PHYSICAL,2023-01-01,POS
+2006,ONLINE_UAE,ONLINE_UAE,Online,UAE,AED,Asia/Dubai,ONLINE,2023-01-01,POS
+2007,ONLINE_KSA,ONLINE_KSA,Online,KSA,SAR,Asia/Riyadh,ONLINE,2023-01-01,POS
