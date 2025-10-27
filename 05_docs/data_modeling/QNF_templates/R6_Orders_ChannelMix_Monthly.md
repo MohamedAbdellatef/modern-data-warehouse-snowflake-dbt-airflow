@@ -1,6 +1,5 @@
 # QNF: R6 — Channel Mix (% Online vs In-Store) — Monthly
 
-**QNF-ID**: R6-Orders-ChannelMix-Monthly
 **Question**: What **percentage of completed orders** are **Online** vs **In-Store** in a given **calendar month**?
 
 **Owner / Decision**: Operations & Ecommerce — channel strategy, staffing, promotions.
