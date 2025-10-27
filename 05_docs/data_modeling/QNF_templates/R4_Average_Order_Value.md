@@ -1,6 +1,6 @@
 # QNF: R4 — AOV (Average Order Value) — Monthly (v1.3)
 
-**QNF-ID**: R4-AOV-Monthly-Net-ExVAT
+
 
 **Question**
 What is the **Average Order Value (ex-VAT)** per **calendar month** by **store / city / country**, shown in **native currency** (AED or SAR) and **AED-consolidated**?
