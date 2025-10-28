@@ -1,6 +1,6 @@
 # modern-data-warehouse-snowflake-dbt-airflow
 ## 🏗️ High-Level Architecture
-![Data Architecture](05_docs/06_architecture_design/modern_dwh_architecture.gif)
+![Data Architecture](05_docs/data_modeling/06_architecture_design/modern_dwh_architecture.gif)
 
 ## 📂 Project Structure
 ```
