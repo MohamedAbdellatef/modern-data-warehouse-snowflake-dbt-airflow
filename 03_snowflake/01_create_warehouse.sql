@@ -1,0 +1,6 @@
+CREATE OR REPLACE WAREHOUSE COMPUTE_WH
+    WITH WAREHOUSE_SIZE = 'XSMALL'
+    AUTO_SUSPEND = 60
+    AUTO_RESUME = TRUE
+    INITIALLY_SUSPENDED = TRUE
+    COMMENT = 'Warehouse used for GULFMART project data loading and transformations';
