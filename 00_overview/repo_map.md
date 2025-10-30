@@ -6,4 +6,5 @@
 - 06_airflow/: DAG that orchestrates COPY + dbt
 - 07_bi/: Power BI notes + screenshots
 - 08_ops/: Roles/grants, costs, monitoring, runbooks
+- 09_cicd/: CI/CD pipeline configs
 - 10_docs/: Validations + screenshots + changelog
