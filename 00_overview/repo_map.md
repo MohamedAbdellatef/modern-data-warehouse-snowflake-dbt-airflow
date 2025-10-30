@@ -1,0 +1,9 @@
+- 01_data_lake/: ADLS layout (manifest + sample CSV)
+- 02_business/: Business processes + QNF
+- 03_design/: Grain cards + ERDs + S2T mapping
+- 04_snowflake/: Idempotent SQL to land RAW
+- 05_dbt_project/: dbt models (sources→stg→core→marts)
+- 06_airflow/: DAG that orchestrates COPY + dbt
+- 07_bi/: Power BI notes + screenshots
+- 08_ops/: Roles/grants, costs, monitoring, runbooks
+- 10_docs/: Validations + screenshots + changelog

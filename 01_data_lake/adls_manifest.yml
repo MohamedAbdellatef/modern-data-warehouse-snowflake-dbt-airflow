@@ -1,0 +1,35 @@
+containers:
+  - name: crm
+    path: azure://datafromsources.blob.core.windows.net/crm/
+    files: ["crm_customers_2025_full.csv"]
+
+  - name: oms
+    path: azure://datafromsources.blob.core.windows.net/oms/2025/{08,09,10}/
+    patterns:
+      - "oms_orders_*.csv"
+      - "oms_order_items_*.csv"
+      - "oms_returns_*.csv"
+
+  - name: psp
+    path: azure://datafromsources.blob.core.windows.net/psp/2025/{08,09,10}/
+    patterns: ["psp_payments_*.csv"]
+
+  - name: erp
+    path: azure://datafromsources.blob.core.windows.net/erp/fx_rates_daily/2025/{08,09,10}/
+    patterns: ["erp_fx_rates_daily_*.csv"]
+
+  - name: finance
+    path: azure://datafromsources.blob.core.windows.net/finance/store_targets_monthly/2025/{08,09,10}/
+    patterns: ["finance_store_targets_monthly_*.csv"]
+
+  - name: pos
+    path: azure://datafromsources.blob.core.windows.net/pos/
+    files: ["pos_stores.csv"]
+
+  - name: pim
+    path: azure://datafromsources.blob.core.windows.net/pim/
+    files: ["pim_products.csv"]
+
+  - name: gov
+    path: azure://datafromsources.blob.core.windows.net/gov/
+    files: ["gov_vat_policy.csv"]
