@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw landing tables loaded by Airflow from ADLS Gen2."
+    database: GULFMART
+    schema: RAW
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    tables:
+      - name: crm_customers
+        identifier: CRM_CUSTOMERS_RAW
+        description: "CRM customers as landed."
+
+      - name: pim_products
+        identifier: PIM_PRODUCTS_RAW
+        description: "Product master (descriptions, categories, prices)."
+
+      - name: oms_orders
+        identifier: OMS_ORDERS_RAW
+        description: "OMS orders as landed; 1 row per order."
+
+      - name: oms_order_items
+        identifier: OMS_ORDER_ITEMS_RAW
+        description: "OMS order items; 1 row per order line."
+
+      - name: pos_stores
+        identifier: POS_STORES_RAW
+        description: "Store master with location."
+
+      - name: psp_payments
+        identifier: PSP_PAYMENTS_RAW
+        description: "Payment transactions from PSP."
+
+      - name: erp_fx_rates_daily
+        identifier: ERP_FX_RATES_DAILY_RAW
+        description: "Daily FX rates as landed."
+
+      - name: finance_store_targets_monthly
+        identifier: FINANCE_STORE_TARGETS_MONTHLY_RAW
+        description: "Monthly sales targets per store."
+
+      - name: gov_vat_policy
+        identifier: GOV_VAT_POLICY_RAW
+        description: "Government VAT policy reference."

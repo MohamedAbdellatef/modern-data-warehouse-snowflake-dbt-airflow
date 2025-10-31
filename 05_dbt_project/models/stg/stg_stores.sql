@@ -1,0 +1,1 @@
+-- SQL file for stg_pos_stores
