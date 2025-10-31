@@ -3,10 +3,9 @@
 This folder holds all data-model design artifacts **before implementation**.
 
 ## Contents
-- `conceptual_model.png` – business entities, no keys.
-- `logical_model.png` – star schemas (facts + dims + relationships).
-- `physical_model.png` – Snowflake physical columns, datatypes, PK/FK notes.
-- `physical_model_notes.md` – decisions: SCD types, surrogate keys, null rules, VAT/FX logic.
+- `grain_cards/` — authoritative specs for each fact table (grain, keys, SCD, DQ)
+- `star_schemas/` — conceptual → logical → physical models (+ notes)
+- `s2t_mapping/` — Source-to-Target maps (RAW→STG→CORE)
 
 ## Design → Build handoff
 1) Confirm **grain** of each fact (one line per grain card).
