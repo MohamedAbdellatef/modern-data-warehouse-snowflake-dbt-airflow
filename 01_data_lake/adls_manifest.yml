@@ -1,35 +1,138 @@
+# ----------------------------------------------------------------------
+# ADLS Gen2 Manifest — GulfMart (DEV)
+# Describes where data lives in ADLS and how Snowflake RAW loads it.
+# ----------------------------------------------------------------------
+
+storage_account: datafromsources
+region: uaenorth
+hierarchical_namespace: true
+
+endpoints:
+  dfs: "abfss://<container>@datafromsources.dfs.core.windows.net/"
+  blob: "azure://datafromsources.blob.core.windows.net/<container>/"
+
+common_file_format:
+  type: CSV
+  field_optionally_enclosed_by: '"'
+  skip_header: 1
+  null_if: ["", "NULL"]
+  compression: auto
+  encoding: utf-8
+
+# Each container below maps to one Snowflake external stage and one/more RAW tables
 containers:
+
   - name: crm
-    path: azure://datafromsources.blob.core.windows.net/crm/
-    files: ["crm_customers_2025_full.csv"]
+    description: Customer master exported from CRM
+    stage: GULFMART.RAW.CRM_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/crm/"
+    url_abfss: "abfss://crm@datafromsources.dfs.core.windows.net/"
+    partitioning:
+      type: monthly
+      layout: "2025/MM/"
+    files:
+      pattern: "crm_customers_*.csv"
+      examples:
+        - "2025/08/crm_customers_202508.csv"
+        - "2025/09/crm_customers_202509.csv"
+        - "2025/10/crm_customers_202510.csv"
+    raw_targets:
+      - table: GULFMART.RAW.CRM_CUSTOMERS_RAW
+        business_key: ["customer_id_nat"]
+        audit_columns: ["_ingestion_date TIMESTAMP_NTZ", "_source_file VARCHAR"]
+        schema:
+          - {name: customer_id_nat,  type: VARCHAR,        nullable: false}
+          - {name: loyalty_tier,     type: VARCHAR}
+          - {name: is_vip_flag,      type: BOOLEAN}
+          - {name: source_system,    type: VARCHAR}
+          - {name: registration_ts,  type: TIMESTAMP_NTZ}
+          - {name: first_purchase_ts,type: TIMESTAMP_NTZ}
+          - {name: country_code,     type: VARCHAR(2)}
+          - {name: city,             type: VARCHAR}
+          - {name: email_optin_flag, type: BOOLEAN}
+          - {name: birth_date,       type: DATE}
 
   - name: oms
-    path: azure://datafromsources.blob.core.windows.net/oms/2025/{08,09,10}/
-    patterns:
-      - "oms_orders_*.csv"
-      - "oms_order_items_*.csv"
-      - "oms_returns_*.csv"
+    description: Orders domain (orders, order_items, returns)
+    stage: GULFMART.RAW.OMS_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/oms/"
+    url_abfss: "abfss://oms@datafromsources.dfs.core.windows.net/"
+    groups:
+      - path: "orders/2025/MM/"
+        pattern: "oms_orders_*.csv"
+        target: GULFMART.RAW.OMS_ORDERS_RAW
+      - path: "order_items/2025/MM/"
+        pattern: "oms_order_items_*.csv"
+        target: GULFMART.RAW.OMS_ORDER_ITEMS_RAW
+      - path: "returns/2025/MM/"
+        pattern: "oms_returns_*.csv"
+        target: GULFMART.RAW.OMS_RETURNS_RAW
 
   - name: psp
-    path: azure://datafromsources.blob.core.windows.net/psp/2025/{08,09,10}/
-    patterns: ["psp_payments_*.csv"]
+    description: Payments captured via payment service provider
+    stage: GULFMART.RAW.PSP_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/psp/"
+    url_abfss: "abfss://psp@datafromsources.dfs.core.windows.net/"
+    partitioning: {type: monthly, layout: "payments/2025/MM/"}
+    files:
+      pattern: "psp_payments_*.csv"
+      examples:
+        - "payments/2025/08/psp_payments_202508.csv"
+        - "payments/2025/09/psp_payments_202509.csv"
+        - "payments/2025/10/psp_payments_202510.csv"
+    raw_targets:
+      - table: GULFMART.RAW.PSP_PAYMENTS_RAW
+        business_key: ["payment_id"]
 
   - name: erp
-    path: azure://datafromsources.blob.core.windows.net/erp/fx_rates_daily/2025/{08,09,10}/
-    patterns: ["erp_fx_rates_daily_*.csv"]
+    description: Reference/finance data coming from ERP
+    stage: GULFMART.RAW.ERP_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/erp/"
+    url_abfss: "abfss://erp@datafromsources.dfs.core.windows.net/"
+    groups:
+      - path: "fx_rates_daily/2025/MM/"
+        pattern: "erp_fx_rates_daily_*.csv"
+        target: GULFMART.RAW.ERP_FX_RATES_DAILY_RAW
 
   - name: finance
-    path: azure://datafromsources.blob.core.windows.net/finance/store_targets_monthly/2025/{08,09,10}/
-    patterns: ["finance_store_targets_monthly_*.csv"]
-
-  - name: pos
-    path: azure://datafromsources.blob.core.windows.net/pos/
-    files: ["pos_stores.csv"]
-
-  - name: pim
-    path: azure://datafromsources.blob.core.windows.net/pim/
-    files: ["pim_products.csv"]
+    description: Store budget/targets (monthly)
+    stage: GULFMART.RAW.FINANCE_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/finance/"
+    url_abfss: "abfss://finance@datafromsources.dfs.core.windows.net/"
+    groups:
+      - path: "store_targets_monthly/2025/MM/"
+        pattern: "finance_store_targets_monthly_*.csv"
+        target: GULFMART.RAW.FINANCE_STORE_TARGETS_RAW
 
   - name: gov
-    path: azure://datafromsources.blob.core.windows.net/gov/
-    files: ["gov_vat_policy.csv"]
+    description: Static policy tables (VAT, etc.)
+    stage: GULFMART.RAW.GOV_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/gov/"
+    url_abfss: "abfss://gov@datafromsources.dfs.core.windows.net/"
+    files:
+      pattern: "gov_vat_policy.csv"
+    raw_targets:
+      - table: GULFMART.RAW.GOV_VAT_POLICY_RAW
+        business_key: ["country_code","vat_class"]
+
+  - name: pos
+    description: Physical stores master
+    stage: GULFMART.RAW.POS_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/pos/"
+    url_abfss: "abfss://pos@datafromsources.dfs.core.windows.net/"
+    files:
+      pattern: "pos_stores.csv"
+    raw_targets:
+      - table: GULFMART.RAW.POS_STORES_RAW
+        business_key: ["store_id"]
+
+  - name: pim
+    description: Product catalog
+    stage: GULFMART.RAW.PIM_STAGE
+    url_blob: "azure://datafromsources.blob.core.windows.net/pim/"
+    url_abfss: "abfss://pim@datafromsources.dfs.core.windows.net/"
+    files:
+      pattern: "pim_products.csv"
+    raw_targets:
+      - table: GULFMART.RAW.PIM_PRODUCTS_RAW
+        business_key: ["product_id"]
