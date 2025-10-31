@@ -1,25 +1,33 @@
-# Snowflake RAW Layer Setup
+# Snowflake bootstrap (GULFMART)
 
-## Purpose
-This folder contains scripts to initialize Snowflake compute, schemas, storage integration, and ingestion stages.
+This folder contains idempotent SQL to stand up Snowflake for the project.
 
-### 1️⃣ `01_create_warehouse.sql`
-Defines the compute resource (warehouse).
+## Order of execution
 
-### 2️⃣ `02_create_db_schema.sql`
-Creates database and schemas (RAW, STG, CORE, MART).
+1. **01_create_warehouse.sql**  
+   - Creates `WH_INGEST` + `WH_DBT` + `WH_BI` and a `DBT_ROLE` + `BI_ROLE`.
 
-### 3️⃣ `03_storage_integration.sql`
-Creates a single secure integration between Snowflake and Azure Data Lake.
+2. **02_create_db_schema.sql**  
+   - Creates `GULFMART` DB and schemas `RAW, STG, CORE, MART`.  
+   - Grants basic privileges to `DBT_ROLE`.
 
-### 4️⃣ `04_create_stages.sql`
-Defines one stage per ADLS container (CRM, OMS, PSP, ERP, Finance).
+3. **03_storage_integration.sql**  
+   - Creates `ADLS_INT`.  
+   - After running, execute `DESC INTEGRATION ADLS_INT` → copy `CLIENT_ID` to Azure AD and grant **Storage Blob Data Reader** on the storage account.
 
-### 5️⃣ `05_create_raw_tables.sql`
-Creates RAW layer tables corresponding to each source.
+4. **04_create_stages.sql**  
+   - One stage per ADLS container + a reusable `RAW_COMMON_CSV` file format.
 
-### 6️⃣ `06_copy_into_raw.sql`
-Loads CSV data from each stage into Snowflake RAW tables.
+5. **05_create_raw_tables.sql**  
+   - Creates RAW tables (light-typed, mostly `VARCHAR`) with `ingestion_date` default and `source_file` column.
 
-### Result
-This pipeline securely ingests data from Azure Data Lake Gen2 → Snowflake RAW → dbt STG/CORE/MARTS.
+6. **06_copy_into_raw.sql**  
+   - Loads from ADLS → RAW using query-based COPY to capture.  
+   - No transformations are applied here; cleaning happens in dbt/STG.
+
+## Notes
+
+- Keep RAW simple; apply casting/standardization in `dbt` staging models.  
+- If a COPY returns 0 files processed, run `LIST @<stage>` and verify your folder layout patterns.  
+- Re-running COPY is safe; de-duplication is handled later in STG using keys & tests.
+

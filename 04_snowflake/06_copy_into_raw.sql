@@ -1,4 +1,9 @@
--- CRM
+use role SYSADMIN;
+use warehouse WH_INGEST;
+use database GULFMART;
+use schema RAW;
+
+-- Customers (CRM)
 COPY INTO GULFMART.RAW.CRM_CUSTOMERS_RAW
 FROM @GULFMART.RAW.CRM_STAGE
 PATTERN='.*crm_customers_.*\\.csv'
