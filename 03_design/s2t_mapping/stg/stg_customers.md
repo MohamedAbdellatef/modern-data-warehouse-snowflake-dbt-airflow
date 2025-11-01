@@ -13,7 +13,7 @@
 
 | Target Column        | Data Type      | Source/Rule                                                           |
 |---|---|---|
-| customer_id_nat      | varchar        | `customer_id_nat`                                                     |
+| customer_id      | varchar        | `customer_id`                                                     |
 | loyalty_tier         | varchar        | `nullif(trim(loyalty_tier),'')`                                       |
 | is_vip_flag          | boolean        | `try_to_boolean(is_vip_flag)`                                         |
 | source_system        | varchar        | `source_system`                                                       |
@@ -29,5 +29,5 @@
 - keep all rows.
 
 **Tests (dbt)**
-- `not_null: customer_id_nat`
-- `accepted_values: country_code in ('AE','SA','BH','KW','QA','OM','EG','JO','LB')` 
+- `not_null: customer_id`
+- `accepted_values: country_code in ('KSA','UAE')` 

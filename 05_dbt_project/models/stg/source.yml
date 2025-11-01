@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    description: "Raw landing tables loaded by Airflow from ADLS Gen2."
+    description: "Raw landing tables loaded from ADLS Gen2.."
     database: GULFMART
     schema: RAW
     quoting:
@@ -14,7 +14,11 @@ sources:
       - name: crm_customers
         identifier: CRM_CUSTOMERS_RAW
         description: "CRM customers as landed."
-
+        loaded_at_field: ingestion_date
+        freshness:
+          warn_after: {count: 2, period: day}
+          error_after: {count: 5, period: day}
+      
       - name: pim_products
         identifier: PIM_PRODUCTS_RAW
         description: "Product master (descriptions, categories, prices)."
@@ -35,7 +39,7 @@ sources:
         identifier: PSP_PAYMENTS_RAW
         description: "Payment transactions from PSP."
 
-      - name: erp_fx_rates_daily
+      - name: fx_rates_daily
         identifier: ERP_FX_RATES_DAILY_RAW
         description: "Daily FX rates as landed."
 

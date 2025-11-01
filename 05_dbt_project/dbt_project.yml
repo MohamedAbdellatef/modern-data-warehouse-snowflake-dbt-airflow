@@ -33,3 +33,4 @@ models:
     stg:
       +enabled: true
       +materialized: table
+      +tags: ["stg"]
