@@ -1,4 +1,4 @@
-{{ config(materialized='table', tags=['stg']) }}
+{{ config(materialized='table') }}
 
 with src as (
     select

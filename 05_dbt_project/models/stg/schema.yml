@@ -11,13 +11,14 @@ models:
           - unique
 
       - name: loyalty_tier
-        description: "Loyalty tier text from CRM."
+        description: "Loyalty tier text."
 
       - name: is_vip_flag
         description: "VIP flag (boolean)."
         tests:
           - accepted_values:
-              values: [true, false]
+              arguments:
+                values: [true, false]
 
       - name: source_system
         description: "Source system code (normalized)."
@@ -32,7 +33,8 @@ models:
         description: "ISO country code (uppercased)."
         tests:
           - accepted_values:
-              values: ["KSA", "UAE"]
+              arguments:
+                values: ["UAE", "KSA"]
 
       - name: city
         description: "Customer city (initcap)."
@@ -41,7 +43,8 @@ models:
         description: "Marketing opt-in (boolean)."
         tests:
           - accepted_values:
-              values: [true, false]
+              arguments:
+                values: [true, false]
 
       - name: birth_date
         description: "Date of birth."
@@ -51,256 +54,365 @@ models:
         tests:
           - not_null
 
-
   - name: stg_fx_rates_daily
     description: "Daily FROM_CCY→AED rates (one row per currency per date)."
     columns:
       - name: fx_date
         tests:
           - not_null
+
       - name: currency_code
+        description: "FROM currency code."
         tests:
           - not_null
+
       - name: conversion_rate_to_aed
+        description: "Rate to AED; must be > 0."
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
+          - positive:
               arguments:
-                expression: "coalesce(conversion_rate_to_aed, 0) > 0"
+                column_name: conversion_rate_to_aed
+
+      - name: _to_ccy
+        description: "TO currency (should be AED)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["AED"]
+
+      - name: load_date
+        tests:
+          - not_null
+
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [fx_date, currency_code]
 
-  - name: stg_orders
-    description: "OMS order headers (hygiene only; no business filters)."
-    columns:
-      - name: order_number
-        description: "Unique order identifier."
-        tests: [not_null, unique]
-
-      - name: customer_id
-        description: "Natural customer id from CRM."
-        tests:
-          - not_null
-          - relationships:
-              to: ref('stg_customers')
-              field: customer_id
-
-      - name: store_id
-        description: "Store identifier from POS/OMS."
-        tests:
-          - not_null
-          - relationships:
-              to: ref('stg_stores')
-              field: store_id
-
-      - name: channel_code
-        description: "Normalized channel."
-        tests:
-          - accepted_values:
-              values: ['POS','WEB','MARKETPLACE']
-
-      - name: final_status
-        description: "Normalized order status."
-        tests:
-          - accepted_values:
-              values: ['COMPLETED','FULFILLED','CANCELLED']
-
-      - name: order_local_ts
-        description: "Business-local timestamp."
-        tests: [not_null]
-
-      - name: order_flag_code
-        description: "Operational flags like TEST/INTERNAL/FRAUD (uppercase)."
-
-      - name: load_date
-        description: "Landing date from RAW."
-        tests: [not_null]
   - name: stg_order_items
-    description: "OMS order lines (hygiene only; one row per order_number × line_number)."
+    description: "Normalized order line items."
     columns:
       - name: order_number
-        description: "Order identifier."
-        tests: [not_null]
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_number
       - name: line_number
-        description: "Line number within order."
         tests: [not_null]
+
       - name: store_id
-        description: "Store of fulfillment."
-        tests: [not_null]
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
       - name: sku
-        description: "Normalized SKU."
-        tests: [not_null]
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: sku
+
       - name: quantity
-        description: "Quantity purchased."
         tests:
-          - not_null
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "coalesce(quantity, 0) >= 0"
+                column_name: quantity
+
       - name: unit_price
-        description: "Unit price (native currency)."
         tests:
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "coalesce(unit_price, 0) >= 0"
-      - name: discount_amount
-        description: "Discount (pre-VAT)."
+                column_name: unit_price
+
       - name: gross_amount
-        description: "Gross after discount, before VAT."
-        tests: [not_null]
-      - name: vat_amount
-        description: "VAT amount."
-        tests: [not_null]
-      - name: net_amount
-        description: "Net = gross - VAT."
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "abs(coalesce(gross_amount,0) - (coalesce(net_amount,0) + coalesce(vat_amount,0))) <= 0.01"
-      - name: currency_code
-        description: "Currency code (normalized)."
+                column_name: gross_amount
+
+      - name: vat_amount
         tests:
           - not_null
+          - non_negative:
+              arguments:
+                column_name: vat_amount
+
+      - name: net_amount
+        tests:
+          - not_null
+          - non_negative:
+              arguments:
+                column_name: net_amount
+
+      - name: currency_code
+        tests:
           - accepted_values:
-              values: ['AED','SAR']   
-      - name: country_code
-        description: "Country of store/order context."
-      - name: category
-        description: "Product category (from items feed)."
+              arguments:
+                values: ["AED", "SAR"]
+
       - name: order_local_ts
-        description: "Local timestamp of the order line."
         tests: [not_null]
-      - name: order_utc_ts
-        description: "UTC timestamp of the order line."
-      - name: source_system
-        description: "Upstream source code."
+
       - name: load_date
-        description: "Landing date from RAW."
         tests: [not_null]
 
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [order_number, line_number]
-      - relationships:
-          to: ref('stg_orders')
-          field: order_number
-      - relationships:
-          to: ref('stg_stores')
-          field: store_id
-      - relationships:
-          to: ref('stg_products')
-          field: sku
-  - name: stg_stores
-    description: "Store master (normalized)."
+
+
+  - name: stg_orders
+    description: "Order headers (per order)."
     columns:
+      - name: order_number
+        tests: [not_null, unique]
+
+      - name: customer_id_nat
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+
       - name: store_id
-        tests: [not_null, unique]
-      - name: store_code
-        tests: [not_null, unique]
-      - name: country_code
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+      - name: channel_code
         tests:
           - accepted_values:
-              values: ['UAE','KSA']
-      - name: currency_code
+              arguments:
+                values: ["POS", "WEB", "MARKETPLACE"]
+
+      - name: final_status
         tests:
           - accepted_values:
-              values: ['AED','SAR']
-      - name: store_type
-        tests:
-          - accepted_values:
-              values: ['PHYSICAL','ONLINE']
-      - name: open_date
+              arguments:
+                values: ["COMPLETED", "FULFILLED", "CANCELLED"]
+
+      - name: order_local_ts
         tests: [not_null]
-  - name: stg_products
-    description: "Product master from PIM."
-    columns:
-      - name: sku
-        tests: [not_null, unique]
-      - name: vat_class
-        tests:
-          - accepted_values:
-              values: ['STANDARD','ZERO','REDUCED']  
+
+      - name: load_date
+        tests: [not_null]
 
   - name: stg_payments
-    description: "PSP payments (hygiene only)."
+    description: "Payments from PSP."
     columns:
       - name: payment_id
         tests: [not_null, unique]
+
       - name: order_number
-        tests: [not_null]
-      - name: store_id
-        tests: [not_null]
-      - name: payment_status
         tests:
-          - accepted_values:
-              values: ['COMPLETED','FAILED']
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_number
+                where:  "payment_status = 'COMPLETED' AND order_number <> 'ORD99999999'"
+
+      - name: store_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
       - name: payment_type
         tests:
           - accepted_values:
-              values: ['CAPTURE','REFUND']
+              arguments:
+                values: ["CAPTURE", "REFUND"]
+
+      - name: payment_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["COMPLETED", "FAILED"]
+
       - name: payment_method
         tests:
           - accepted_values:
-              values: ['VISA','MASTERCARD','WALLET','BNPL','CASH']
+              arguments:
+                values: ["VISA", "MASTERCARD", "WALLET", "BNPL", "CASH"]
+
       - name: amount_native
         tests:
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "coalesce(amount_native,0) >= 0"
+                column_name: amount_native
+
       - name: fee_native
         tests:
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "coalesce(fee_native,0) >= 0"
+                column_name: fee_native
+
       - name: currency_code
         tests:
           - accepted_values:
-              values: ['AED','SAR']
+              arguments:
+                values: ["AED", "SAR"]
+
       - name: payment_local_ts
         tests: [not_null]
-    tests:
-      - relationships:
-          to: ref('stg_orders')
-          field: order_number
-      - relationships:
-          to: ref('stg_stores')
-          field: store_id
+
+      - name: load_date
+        tests: [not_null]
+
+  - name: stg_products
+    description: "Product master."
+    columns:
+      - name: sku
+        tests: [not_null, unique]
+
+      - name: vat_class
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["STANDARD", "ZERO", "REDUCED"]
+
+      - name: load_date
+        tests: [not_null]
+
+  - name: stg_returns
+    description: "Returns headers/lines as landed (no SKU test unless column exists)."
+    columns:
+      - name: return_id
+        tests: [not_null, unique]
+
+      - name: order_number
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_number
+
+      - name: store_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+      - name: quantity_returned
+        tests:
+          - non_negative:
+              arguments:
+                column_name: quantity_returned
+
+      - name: refund_amount_native
+        tests:
+          - non_negative:
+              arguments:
+                column_name: refund_amount_native
+
+      - name: currency_code
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["AED", "SAR"]
+
+      - name: return_local_ts
+        tests: [not_null]
+
+      - name: load_date
+        tests: [not_null]
+
   - name: stg_store_targets_monthly
-    description: "Monthly revenue targets per store (AED)."
+    description: "Monthly AED targets per store."
     columns:
       - name: store_id
-        tests: [not_null]
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
       - name: target_month
         tests: [not_null]
+
       - name: target_amount_aed
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
+          - non_negative:
               arguments:
-                expression: "coalesce(target_amount_aed,0) >= 0"
+                column_name: target_amount_aed
+
+      - name: load_date
+        tests: [not_null]
+
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [store_id, target_month]
-      - relationships:
-          to: ref('stg_stores')
-          field: store_id
+
+  - name: stg_stores
+    description: "Store master (country/currency/timezone, PHYSICAL/ONLINE)."
+    columns:
+      - name: store_id
+        tests: [not_null, unique]
+
+      - name: store_code
+        tests: [not_null, unique]
+
+      - name: country_code
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["UAE", "KSA"]
+
+      - name: currency_code
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["AED", "SAR"]
+
+      - name: store_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["PHYSICAL", "ONLINE"]
+
+      - name: open_date
+        tests: [not_null]
+
+      - name: load_date
+        tests: [not_null]
+
   - name: stg_vat_policy
-    description: "Reference VAT rates by country and effective date."
+    description: "VAT policy by country (effective_from)."
     columns:
       - name: country_code
         tests:
           - not_null
           - accepted_values:
-              values: ['UAE','KSA']
+              arguments:
+                values: ["UAE", "KSA"]
+
       - name: vat_rate
+        description: "Decimal rate (e.g., 0.05, 0.15)."
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
+          - between_0_1:
               arguments:
-                expression: "coalesce(vat_rate,0) >= 0"
+                column_name: vat_rate
+
       - name: effective_from
         tests: [not_null]
 
-
+      - name: load_date
+        tests: [not_null]

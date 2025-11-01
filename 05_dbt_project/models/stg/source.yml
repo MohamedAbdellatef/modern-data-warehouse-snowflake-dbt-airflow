@@ -50,3 +50,7 @@ sources:
       - name: gov_vat_policy
         identifier: GOV_VAT_POLICY_RAW
         description: "Government VAT policy reference."
+      
+      - name: oms_returns
+        identifier: OMS_RETURNS_RAW
+        description: "OMS returns as landed."
