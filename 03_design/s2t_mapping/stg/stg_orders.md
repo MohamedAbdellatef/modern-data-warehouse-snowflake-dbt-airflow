@@ -4,29 +4,25 @@
 
 ## Source
 - `RAW.OMS_ORDERS_RAW`
-  - cols (expected): `order_number, customer_id_nat, store_id, channel_code, currency_code, order_local_ts, order_utc_ts, final_status, order_item_count, order_gross_amount_native, order_vat_amount_native, order_net_amount_native, is_valid_sales_flag, source_system, ingestion_date`
+  - cols (expected): `SOURCE_SYSTEM, ORDER_NUMBER, STORE_ID, CUSTOMER_ID_NAT, CHANNEL, FINAL_STATUS, ORDER_LOCAL_TS, ORDER_UTC_TS, ORDER_FLAG, INGESTION_DATE`
 
 ## Target
 - `STG.stg_orders`
 
-| Target Column              | Type           | Source/Rule |
-|---|---|---|
-| order_number               | varchar        | `order_number` |
-| customer_id_nat           | varchar        | `customer_id_nat` |
-| store_id                   | number         | `store_id` |
-| channel_code               | varchar        | `upper(trim(channel_code))` |
-| currency_code              | varchar        | `upper(trim(currency_code))` |
-| order_local_ts             | timestamp_ntz  | `try_to_timestamp_ntz(order_local_ts)` |
-| order_utc_ts               | timestamp_ntz  | `try_to_timestamp_ntz(order_utc_ts)` |
-| final_status               | varchar        | `upper(trim(final_status))` |
-| order_item_count           | number         | `order_item_count` |
-| order_gross_amount_native  | number(18,2)   | `order_gross_amount_native` |
-| order_vat_amount_native    | number(18,2)   | `order_vat_amount_native` |
-| order_net_amount_native    | number(18,2)   | `order_net_amount_native` |
-| is_valid_sales_flag        | boolean        | `try_to_boolean(is_valid_sales_flag)` |
-| source_system              | varchar        | `source_system` |
-| load_date                  | date           | `to_date(ingestion_date)` |
+| Target Column   | Type          | Source / Rule                          |
+| --------------- | ------------- | -------------------------------------- |
+| order_number    | VARCHAR       | `ORDER_NUMBER`                         |
+| customer_id_nat | VARCHAR       | `CUSTOMER_ID_NAT`                      |
+| store_id        | NUMBER        | `STORE_ID`                             |
+| channel_code    | VARCHAR       | `upper(trim(CHANNEL))`                 |
+| final_status    | VARCHAR       | `upper(trim(FINAL_STATUS))`            |
+| order_local_ts  | TIMESTAMP_NTZ | `try_to_timestamp_ntz(ORDER_LOCAL_TS)` |
+| order_utc_ts    | TIMESTAMP_NTZ | `try_to_timestamp_ntz(ORDER_UTC_TS)`   |
+| order_flag_code | VARCHAR       | `upper(trim(ORDER_FLAG))`              |
+| source_system   | VARCHAR       | `SOURCE_SYSTEM`                        |
+| load_date       | DATE          | `to_date(INGESTION_DATE)`              |
+
 
 **Tests**
 - `not_null: order_number`
-- `accepted_values: final_status in ('PLACED','PAID','CANCELLED','RETURNED','FULFILLED')` (adapt)
+- `accepted_values: final_status in ('COMPLETED','FULFILLED','CANCELLED')` 

@@ -1,22 +1,21 @@
 # S2T — stg_vat_policy
 
-**Grain:** 1 row = 1 VAT class record (latest wins if duplicated).
+**Grain:** 1 row = 1 country policy row (effective date).
 
 ## Source
-- `RAW.GOV_VAT_POLICY_RAW`
-  - cols: `vat_class, vat_percent, country_code, source_system, ingestion_date`
+- RAW: `RAW.GOV_VAT_POLICY_RAW`
+- Columns: `country, vat_rate, effective_from, source_system`
 
 ## Target
-- `STG.stg_vat_policy`
+- STG: `STG.stg_vat_policy`
 
 | Target Column | Type | Source/Rule |
 |---|---|---|
-| vat_class     | varchar      | `upper(trim(vat_class))` |
-| vat_percent   | number(5,2)  | `vat_percent` |
-| country_code  | varchar      | `upper(trim(country_code))` |
-| source_system | varchar      | `source_system` |
-| load_date     | date         | `to_date(ingestion_date)` |
+| country_code   | varchar     | `upper(trim(country))` |
+| vat_rate       | number(5,2) | `vat_rate` |
+| effective_from | date        | `try_to_date(effective_from)` |
+| source_system  | varchar     | `source_system` |
+| load_date      | date        | `current_date()` |
 
-**Tests**
-- `not_null: vat_class`
-- `accepted_values: country_code in ('AE','SA', '...')`
+**Notes**
+- Expected values for `country_code`: `UAE`, `KSA`.
