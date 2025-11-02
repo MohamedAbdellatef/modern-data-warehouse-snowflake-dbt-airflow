@@ -1,0 +1,100 @@
+version: 2
+
+models:
+  - name: dim_date
+    columns:
+      - name: date_key
+        tests: [not_null, unique]
+
+  - name: dim_store
+    columns:
+      - name: store_key
+        tests: [not_null, unique]
+      - name: store_id
+        tests: [not_null]
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [store_id, effective_from]
+
+  - name: dim_customer
+    columns:
+      - name: customer_key
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+
+  - name: dim_product
+    columns:
+      - name: product_key
+        tests: [not_null, unique]
+      - name: sku
+        tests: [not_null]
+
+  - name: dim_channel
+    columns:
+      - name: channel_key
+        tests: [not_null, unique]
+      - name: channel_code
+        tests: [not_null]
+
+  - name: dim_payment
+    columns:
+      - name: payment_key
+        tests: [not_null, unique]
+
+  - name: dim_currency
+    columns:
+      - name: currency_key
+        tests: [not_null, unique]
+
+  - name: fact_order_line
+    columns:
+      - name: order_line_key
+        tests: [not_null, unique]
+      - name: order_number
+        tests: [not_null]
+      - name: line_number
+        tests: [not_null]
+      - name: store_key
+        tests: [relationships: {to: ref('dim_store'), field: store_key}]
+      - name: customer_key
+        tests: [relationships: {to: ref('dim_customer'), field: customer_key}]
+      - name: product_key
+        tests: [relationships: {to: ref('dim_product'), field: product_key}]
+      - name: channel_key
+        tests: [relationships: {to: ref('dim_channel'), field: channel_key}]
+      - name: currency_key
+        tests: [relationships: {to: ref('dim_currency'), field: currency_key}]
+
+  - name: fact_order
+    columns:
+      - name: order_key
+        tests: [not_null, unique]
+      - name: order_number
+        tests: [not_null, unique]
+      - name: store_key
+        tests: [relationships: {to: ref('dim_store'), field: store_key}]
+      - name: customer_key
+        tests: [relationships: {to: ref('dim_customer'), field: customer_key}]
+      - name: channel_key
+        tests: [relationships: {to: ref('dim_channel'), field: channel_key}]
+      - name: currency_key
+        tests: [relationships: {to: ref('dim_currency'), field: currency_key}]
+
+  - name: fact_customer_monthly_activity
+    columns:
+      - name: customer_month_key
+        tests: [not_null, unique]
+      - name: customer_key
+        tests: [relationships: {to: ref('dim_customer'), field: customer_key}]
+      - name: month_key
+        tests: [relationships: {to: ref('dim_date'), field: date_key}]
+
+  - name: fact_store_target_monthly
+    columns:
+      - name: store_month_key
+        tests: [not_null, unique]
+      - name: store_key
+        tests: [relationships: {to: ref('dim_store'), field: store_key}]
+      - name: month_key
+        tests: [relationships: {to: ref('dim_date'), field: date_key}]
