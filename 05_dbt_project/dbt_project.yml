@@ -39,5 +39,5 @@ models:
       +tags: ["core"]
     marts:
       +schema: MART
-      +materialized: table
+      +materialized: view
       +tags: ["mart"]
