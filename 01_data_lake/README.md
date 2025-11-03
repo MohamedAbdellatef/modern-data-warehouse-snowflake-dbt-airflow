@@ -44,4 +44,13 @@ Snowflake reuses a **common file format**:
 
 ```sql
 CREATE OR REPLACE FILE FORMAT GULFMART.RAW.RAW_COMMON_CSV
-  TYPE=CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1 NULL_IF=('','NULL');
+  TYPE = CSV
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER = 1
+  NULL_IF = ('', 'NULL');
+
+## 3) How this is used
+
+- Airflow lands CSVs into these ADLS paths.
+- Snowflake external stages (see `04_snowflake/04_create_stages.sql`) point at each container.
+- `COPY INTO` commands (see `04_snowflake/06_copy_into_raw.sql`) load data into `GULFMART.RAW.*_RAW` tables using `RAW_COMMON_CSV`.

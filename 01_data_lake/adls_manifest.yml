@@ -7,6 +7,7 @@ storage_account: datafromsources
 region: uaenorth
 hierarchical_namespace: true
 
+# Replace <container> with crm/oms/psp/... when constructing full URLs
 endpoints:
   dfs: "abfss://<container>@datafromsources.dfs.core.windows.net/"
   blob: "azure://datafromsources.blob.core.windows.net/<container>/"
