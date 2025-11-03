@@ -8,7 +8,6 @@ End-to-end modern data warehouse for a fictional retailer **GulfMart**:
 - **Operate** → SLOs, data contracts, cost monitoring, lineage & runbooks
 - **Consume** → BI dashboards on top of curated marts (Power BI / Looker / Tableau)
 
-This repo is designed as a portfolio-ready, 10/10 example of a modern analytics stack for retail.
 
 ---
 
@@ -108,4 +107,5 @@ Marts in `05_dbt_project/models/marts` map directly to QNF cards:
 │   └── dbt_ci.yml        # CI: dbt build + tests
 ├── .pre-commit-config.yaml
 ├── LICENSE
-└── README.md             # (this file)
+└── README.md             # this file
+```
