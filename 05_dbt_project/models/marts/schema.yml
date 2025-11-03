@@ -57,15 +57,43 @@ models:
       - name: month_key
         tests: [not_null]
 exposures:
-  - name: gulfmart_store_kpi_dashboard
+  - name: bi_monthly_orders_by_store
     type: dashboard
-    maturity: high
-    url: "https://your-bi-tool/dashboard/gulfmart-store-kpis"  # or placeholder
-    description: "Store performance dashboard using GulfMart marts."
+    maturity: medium
     owner:
-      name: "Data Engineering"
-      email: "data@gulfmart.local"
+      name: Data Team
+      email: data@gulfmart.com
+    description: "R1 — Monthly orders by store dashboard"
     depends_on:
       - ref('mart_monthly_orders_by_store')
+
+  - name: bi_net_sales_by_country
+    type: dashboard
+    maturity: medium
+    owner:
+      name: Data Team
+      email: data@gulfmart.com
+    description: "R2 — Net sales ex-VAT in AED by country / month"
+    depends_on:
+      - ref('mart_net_sales_by_country_monthly')
+
+  - name: bi_channel_mix_monthly
+    type: dashboard
+    maturity: medium
+    owner:
+      name: Data Team
+      email: data@gulfmart.com
+    description: "R6 — Online vs POS channel mix over time"
+    depends_on:
+      - ref('mart_channel_mix_monthly')
+
+  - name: bi_store_target_vs_actual
+    type: dashboard
+    maturity: medium
+    owner:
+      name: FP&A Team
+      email: finance@gulfmart.com
+    description: "S2 — Revenue vs target gap by store / month"
+    depends_on:
       - ref('mart_store_target_vs_actual_monthly')
-      - ref('mart_store_performance_index')
+
