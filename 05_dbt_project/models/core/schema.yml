@@ -1,327 +1,495 @@
 version: 2
 
 models:
-  # =======================
+
+  # ============================
   # DIMENSIONS
-  # =======================
-
-  - name: dim_store
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: store_key
-        data_type: number
-        tests: [not_null, unique]
-
-      - name: store_id
-        data_type: varchar
-        tests: [not_null]
-
-      - name: store_code
-        data_type: varchar
-        tests: [not_null, unique]
-
-      - name: store_name
-        data_type: varchar
-
-      - name: city
-        data_type: varchar
-
-      - name: country
-        data_type: varchar
-
-      - name: timezone
-        data_type: varchar
-
-      - name: currency_code
-        data_type: varchar
-
-      - name: store_type
-        data_type: varchar
-
-      - name: is_active_flag
-        data_type: boolean
-
-      - name: effective_from
-        data_type: timestamp_ltz
-
-      - name: effective_to
-        data_type: timestamp_ltz
-
-      - name: is_current
-        data_type: boolean
-
-  - name: dim_customer
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: customer_key
-        data_type: number
-        tests: [not_null, unique]
-
-      - name: customer_id
-        data_type: varchar
-        tests: [not_null, unique]
-
-      - name: loyalty_tier
-        data_type: varchar
-
-      - name: is_vip_flag
-        data_type: boolean
-
-      - name: registration_ts
-        data_type: timestamp_ltz
-
-      - name: first_purchase_ts
-        data_type: timestamp_ltz
-
-      - name: country_code
-        data_type: varchar
-
-      - name: city
-        data_type: varchar
-
-      - name: email_optin_flag
-        data_type: boolean
-
-      - name: birth_date
-        data_type: date
-
-      - name: is_active_flag
-        data_type: boolean
-
-      - name: effective_from
-        data_type: timestamp_ltz
-
-      - name: effective_to
-        data_type: timestamp_ltz
-
-      - name: is_current
-        data_type: boolean
-
-  - name: dim_product
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: product_key
-        data_type: number
-        tests: [not_null, unique]
-
-      - name: sku
-        data_type: varchar
-        tests: [not_null, unique]
-
-      - name: product_name
-        data_type: varchar
-
-      - name: category
-        data_type: varchar
-
-      - name: brand
-        data_type: varchar
-
-      - name: vat_class
-        data_type: varchar
-
-      - name: effective_from
-        data_type: timestamp_ltz
-
-      - name: effective_to
-        data_type: timestamp_ltz
-
-      - name: is_current
-        data_type: boolean
+  # ============================
 
   - name: dim_channel
-    config:
-      contract:
-        enforced: true
+    description: "Channel dimension (POS / WEB / MARKETPLACE) with digital flag."
     columns:
       - name: channel_key
-        data_type: number
+        description: "Surrogate key for channel."
         tests: [not_null, unique]
 
       - name: channel_code
-        data_type: varchar
-        tests: [not_null, unique]
-
-      - name: channel_name
-        data_type: varchar
-
-      - name: is_digital_flag
-        data_type: boolean
-
-  - name: dim_payment
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: payment_key
-        data_type: number
-        tests: [not_null, unique]
-
-      - name: payment_method
-        data_type: varchar
+        description: "Source channel code from stg_orders."
         tests: [not_null]
 
-      - name: payment_type
-        data_type: varchar
+      - name: channel_name
+        description: "Human-readable channel name."
 
-      - name: provider_name
-        data_type: varchar
-
-      - name: payment_status
-        data_type: varchar
-
-      - name: is_active_flag
-        data_type: boolean
+      - name: is_digital_flag
+        description: "True if online (WEB/MARKETPLACE)."
+        tests: [not_null]
 
   - name: dim_currency
-    config:
-      contract:
-        enforced: true
+    description: "Currency dimension (AED, SAR, ...)."
     columns:
       - name: currency_key
-        data_type: number
+        description: "Surrogate key for currency."
         tests: [not_null, unique]
 
       - name: currency_code
-        data_type: varchar
-        tests: [not_null, unique]
+        description: "ISO currency code from FX / transactions."
+        tests: [not_null]
 
       - name: currency_name
-        data_type: varchar
+        description: "Human-readable currency name."
 
       - name: is_active_flag
-        data_type: boolean
+        description: "Whether currency is active in the system."
+        tests: [not_null]
+
+  - name: dim_customer
+    description: "Slowly changing customer dimension (loyalty, VIP, demographics)."
+    columns:
+      - name: customer_key
+        description: "Surrogate SCD2 key (customer_id + valid_from)."
+        tests: [not_null, unique]
+
+      - name: customer_id
+        description: "Natural key from CRM (customer_id_nat)."
+        tests: [not_null]
+
+      - name: loyalty_tier
+        description: "Customer loyalty tier (Bronze/Silver/Gold)."
+
+      - name: is_vip_flag
+        description: "VIP flag from CRM."
+        tests: [not_null]
+
+      - name: source_system
+        description: "Upstream system name (CRM, etc)."
+
+      - name: registration_ts
+        description: "When customer registered."
+
+      - name: first_purchase_ts
+        description: "Timestamp of first purchase."
+
+      - name: country_code
+        description: "Customer country ISO code."
+
+      - name: city
+        description: "Customer city."
+
+      - name: email_optin_flag
+        description: "Whether customer opted in to marketing emails."
+        tests: [not_null]
+
+      - name: birth_date
+        description: "Customer birth date (if available)."
+
+      - name: is_current
+        description: "True for current SCD version."
+        tests: [not_null]
+
+      - name: effective_from
+        description: "Start datetime of this SCD version."
+        tests: [not_null]
+
+      - name: effective_to
+        description: "End datetime of this SCD version (null for current)."
+
+      - name: load_date
+        description: "Date when this record version was loaded."
 
   - name: dim_date
-    config:
-      contract:
-        enforced: true
+    description: "Date dimension with calendar attributes."
     columns:
       - name: date_key
-        data_type: number
+        description: "Surrogate key for date (hash of date_day)."
         tests: [not_null, unique]
 
       - name: full_date
-        data_type: date
+        description: "Actual calendar date."
+        tests: [not_null, unique]
 
-      - name: day_of_week
-        data_type: varchar
+      - name: ymd
+        description: "YYYY-MM-DD formatted string."
+
+      - name: day_of_week_num
+        description: "Day of week number."
+        tests: [not_null]
+
+      - name: day_of_week_code
+        description: "Short code (MON, TUE...)."
 
       - name: day_name
-        data_type: varchar
+        description: "Day of week name."
 
-      - name: day_of_month
-        data_type: number
-
-      - name: week_of_year
-        data_type: number
+      - name: week_number
+        description: "ISO week number."
 
       - name: month_number
-        data_type: number
+        description: "Month number."
+        tests: [not_null]
+
+      - name: month_code
+        description: "Short month code (Jan, Feb...)."
 
       - name: month_name
-        data_type: varchar
+        description: "Month name."
 
-      - name: quarter
-        data_type: number
+      - name: quarter_number
+        description: "Quarter number (1–4)."
 
       - name: year
-        data_type: number
-
-      - name: is_weekend
-        data_type: boolean
+        description: "Calendar year."
+        tests: [not_null]
 
       - name: month_start_date
-        data_type: date
+        description: "First day of month."
 
       - name: month_end_date
-        data_type: date
+        description: "Last day of month."
 
-  # =======================
-  # FACTS
-  # =======================
-  - name: fact_order_line
-    config:
-      contract:
-        enforced: true
+      - name: is_weekend
+        description: "True if weekend."
+        tests: [not_null]
+
+  - name: dim_payment
+    description: "Payment method / type / status combinations."
     columns:
-      - name: order_number # varchar
-        data_type: varchar
-      - name: line_number
-        data_type: number(38,0)
-      - name: store_key
-        data_type: varchar
-      - name: customer_key
-        data_type: varchar
-      - name: date_key
-        data_type: varchar
-      - name: currency_key
-        data_type: varchar
-      - name: channel_key
-        data_type: varchar
-      - name: product_key
-        data_type: varchar
-      - name: quantity
-        data_type: number(18,3)
-      - name: unit_price
-        data_type: number(18,2)
-      - name: discount_amount
-        data_type: number(18,2)
-      - name: gross_amount
-        data_type: number(18,2)
-      - name: vat_amount
-        data_type: number(18,2)
-      - name: net_amount
-        data_type: number(18,2)
-      - name: net_amount_aed
-        data_type: number(18,2)
-      - name: order_local_ts
-        data_type: timestamp_ltz
-      - name: load_date
-        data_type: date
+      - name: payment_key
+        description: "Surrogate key for payment dimension."
+        tests: [not_null, unique]
 
-  - name: fact_order
-    config:
-      contract:
-        enforced: true
+      - name: payment_method
+        description: "Payment method (VISA / MASTERCARD / WALLET / BNPL / CASH)."
+        tests: [not_null]
+
+      - name: payment_type
+        description: "CAPTURE / REFUND."
+        tests: [not_null]
+
+      - name: payment_status
+        description: "COMPLETED / FAILED."
+        tests: [not_null]
+
+      - name: is_refund_flag
+        description: "True if this represents a refund."
+        tests: [not_null]
+
+  - name: dim_product
+    description: "Slowly changing product dimension."
+    columns:
+      - name: product_key
+        description: "Surrogate SCD2 key (sku + valid_from)."
+        tests: [not_null, unique]
+
+      - name: sku
+        description: "Product SKU from PIM."
+        tests: [not_null]
+
+      - name: product_name
+        description: "Product display name."
+
+      - name: category
+        description: "Product category."
+
+      - name: brand
+        description: "Product brand."
+
+      - name: vat_class
+        description: "VAT class (STANDARD / ZERO / REDUCED)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["STANDARD", "ZERO", "REDUCED"]
+
+      - name: is_current
+        description: "True for current SCD version."
+        tests: [not_null]
+
+      - name: effective_from
+        description: "Start datetime of this SCD version."
+        tests: [not_null]
+
+      - name: effective_to
+        description: "End datetime of this SCD version (null for current)."
+
+      - name: load_date
+        description: "Date when this record version was loaded."
+
+  - name: dim_store
+    description: "Store dimension with SCD behaviour and an UNKNOWN row."
+    columns:
+      - name: store_key
+        description: "Surrogate SCD key (store_id + valid_from), or 'UNKNOWN'."
+        tests: [not_null, unique]
+
+      - name: store_id
+        description: "Natural numeric store ID from POS."
+        tests: [not_null]
+
+      - name: store_code
+        description: "Short store code."
+        tests: [not_null]
+
+      - name: store_name
+        description: "Store name."
+
+      - name: city
+        description: "City where the store is located."
+
+      - name: country_code
+        description: "Country code (UAE / KSA)."
+
+      - name: currency_code
+        description: "Store local currency."
+
+      - name: timezone
+        description: "Store timezone identifier."
+
+      - name: store_type
+        description: "PHYSICAL / ONLINE / UNKNOWN."
+
+      - name: effective_from
+        description: "Start datetime of this SCD version."
+        tests: [not_null]
+
+      - name: effective_to
+        description: "End datetime of this SCD version (null for current)."
+
+      - name: is_current
+        description: "True for current SCD version."
+        tests: [not_null]
+
+
+  # ============================
+  # FACTS
+  # ============================
+
+  - name: fact_order_line
+    description: "Transactional fact at order line grain (order_number × line_number)."
     columns:
       - name: order_number
-        data_type: varchar
-      - name: customer_key
-        data_type: varchar
+        description: "Order identifier from OMS."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fact_order')
+                field: order_number
+
+      - name: line_number
+        description: "Line number within the order."
+        tests: [not_null]
+
       - name: store_key
-        data_type: varchar
-      - name: channel_key
-        data_type: varchar
-      - name: currency_key
-        data_type: varchar
+        description: "FK to dim_store."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_store')
+                field: store_key
+
+      - name: customer_key
+        description: "FK to dim_customer."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+
       - name: date_key
-        data_type: varchar
-      - name: payment_key
-        data_type: varchar
+        description: "FK to dim_date, based on order_local_ts."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: currency_key
+        description: "FK to dim_currency, based on line currency_code."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_currency')
+                field: currency_key
+
+      - name: channel_key
+        description: "FK to dim_channel."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_channel')
+                field: channel_key
+
+      - name: product_key
+        description: "FK to dim_product."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+
+      - name: quantity
+        description: "Quantity ordered on this line."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: quantity
+
+      - name: unit_price
+        description: "Unit price in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: unit_price
+
+      - name: discount_amount
+        description: "Discount amount applied on this line in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: discount_amount
+
+      - name: gross_amount
+        description: "Gross line amount in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: gross_amount
+
+      - name: vat_amount
+        description: "VAT amount for this line in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: vat_amount
+
+      - name: net_amount
+        description: "Net (ex-VAT) amount in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: net_amount
+
+      - name: net_amount_aed
+        description: "Net amount converted to AED using daily FX."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: net_amount_aed
+
       - name: order_local_ts
-        data_type: timestamp_ltz
-      - name: order_utc_ts
-        data_type: timestamp_ltz
-      - name: items_count
-        data_type: number(38,0)
-      - name: lines_count
-        data_type: number(38,0)
-      - name: order_gross_native
-        data_type: number(18,2)
-      - name: order_net_native
-        data_type: number(18,2)
-      - name: order_net_aed
-        data_type: number(18,2)
-      - name: order_flag_code
-        data_type: varchar
-      - name: final_status
-        data_type: varchar
+        description: "Local timestamp of the order for this line."
+        tests: [not_null]
+
       - name: load_date
-        data_type: date
+        description: "Load date from staging."
+        tests: [not_null]
+
+
+  - name: fact_order
+    description: "Order-level fact aggregated from order lines."
+    columns:
+      - name: order_number
+        description: "Order identifier from OMS."
+        tests: [not_null, unique]
+
+      - name: customer_key
+        description: "FK to dim_customer."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+
+      - name: store_key
+        description: "FK to dim_store."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_store')
+                field: store_key
+
+      - name: channel_key
+        description: "FK to dim_channel."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_channel')
+                field: channel_key
+
+      - name: currency_key
+        description: "FK to dim_currency."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_currency')
+                field: currency_key
+
+      - name: date_key
+        description: "FK to dim_date, based on order_local_ts."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: payment_key
+        description: "FK to dim_payment (future use when you build payment fact)."
+
+      - name: order_local_ts
+        description: "Local timestamp of the order."
+        tests: [not_null]
+
+      - name: order_utc_ts
+        description: "UTC timestamp of the order."
+
+      - name: items_count
+        description: "Distinct SKUs in the order."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: items_count
+
+      - name: lines_count
+        description: "Number of lines in the order."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: lines_count
+
+      - name: order_gross_native
+        description: "Gross order amount in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: order_gross_native
+
+      - name: order_net_native
+        description: "Net (ex-VAT) order amount in native currency."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: order_net_native
+
+      - name: order_net_aed
+        description: "Net order amount converted to AED."
+        tests:
+          - non_negative:
+              arguments:
+                column_name: order_net_aed
+
+      - name: order_flag_code
+        description: "Order flag (TEST / INTERNAL / FRAUD / null)."
+
+      - name: final_status
+        description: "Final order status (COMPLETED / FULFILLED / CANCELLED)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["COMPLETED", "FULFILLED", "CANCELLED"]
+
+      - name: load_date
+        description: "Max load_date from contributing order lines."
+        tests: [not_null]

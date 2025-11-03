@@ -56,3 +56,16 @@ models:
     columns:
       - name: month_key
         tests: [not_null]
+exposures:
+  - name: gulfmart_store_kpi_dashboard
+    type: dashboard
+    maturity: high
+    url: "https://your-bi-tool/dashboard/gulfmart-store-kpis"  # or placeholder
+    description: "Store performance dashboard using GulfMart marts."
+    owner:
+      name: "Data Engineering"
+      email: "data@gulfmart.local"
+    depends_on:
+      - ref('mart_monthly_orders_by_store')
+      - ref('mart_store_target_vs_actual_monthly')
+      - ref('mart_store_performance_index')

@@ -73,5 +73,5 @@ with DAG(
         """,
     )
 
-    # execution order (you can chain if you want)
+    # execution order 
     load_raw_oms_orders >> load_raw_oms_order_items >> load_raw_psp_payments >> load_raw_fx_rates >> load_raw_store_targets

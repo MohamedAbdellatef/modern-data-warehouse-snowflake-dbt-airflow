@@ -1,0 +1,8 @@
+freshness:
+  source: RAW.OMS.ORDERS
+  warn_after: 12h
+  error_after: 24h
+timeliness:
+  dag_finish_by: "06:30 Asia/Riyadh"
+reliability:
+  dbt_build_success_30d: ">= 99.5%"

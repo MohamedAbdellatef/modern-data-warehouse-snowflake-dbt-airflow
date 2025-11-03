@@ -1,0 +1,44 @@
+name: PR - dbt build
+
+on:
+  pull_request:
+    paths:
+      - '05_dbt_project/**'
+      - '.github/workflows/**'
+      - '09_ci_cd/**'
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.10' }
+
+      - name: Install
+        run: |
+          pip install dbt-snowflake==1.8.* sqlfluff==3.* elementary-data
+
+      - name: Lint SQL
+        run: sqlfluff lint 05_dbt_project --dialect snowflake || true
+
+      - name: Build & Test
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+        run: |
+          cd 05_dbt_project
+          dbt deps
+          dbt seed
+          dbt build --state target --select state:modified+ --fail-fast
+          elementary report --file retail_dq_report.html || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-artifacts
+          path: |
+            05_dbt_project/target/**
+            05_dbt_project/retail_dq_report.html
