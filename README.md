@@ -1,9 +1,10 @@
 # GulfMart Modern Data Warehouse (Snowflake + dbt + Airflow)
 
-End-to-end analytics stack for a fictional retailer **GulfMart**:
+End-to-end analytics stack for a **fictional Gulf retailer (UAE & KSA)**.  
+This is a **portfolio project** using **simulated CSV data** to showcase modern data engineering:
 
-- Raw OMS / CRM / PIM / Finance CSVs → Snowflake RAW
-- Transform with **dbt** into staging, **core dims/facts**, and **marts**
+- Raw OMS / CRM / PIM / Finance CSVs → **Azure Data Lake (ADLS Gen2)** → Snowflake **RAW**
+- Transform with **dbt** into **staging**, **core dims/facts**, and **marts**
 - Orchestrate daily runs with **Airflow**
 - Production-minded **ops, SLOs, cost, contracts & CI**
 
@@ -12,6 +13,8 @@ End-to-end analytics stack for a fictional retailer **GulfMart**:
 ## 1. Architecture
 
 ![Architecture Diagram](00_overview/architecture_diagram.gif)
+
+ADLS Gen2 → Snowflake (RAW → STG → CORE → MARTS) → BI / ML, orchestrated by Airflow with dbt.
 
 ---
 
@@ -54,7 +57,7 @@ End-to-end analytics stack for a fictional retailer **GulfMart**:
 ├── 04_snowflake/
 │   ├── 01_create_warehouse.sql
 │   ├── 02_create_db_schema.sql
-│   ├── 03_storage_integraton.sql
+│   ├── 03_storage_integration.sql
 │   ├── 04_create_stages.sql
 │   ├── 05_create_raw_tables.sql
 │   └── 06_copy_into_raw.sql

@@ -18,5 +18,3 @@ This folder captures the **why** behind the warehouse: core processes, KPIs, and
 - **Active Customer:** ≥1 order in the period
 - **Repeat Purchase Rate:** `repeat_customers / customers`
 - **Store Performance Index:** composite of revenue, margin, traffic
-
-

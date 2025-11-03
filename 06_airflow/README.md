@@ -1,24 +1,17 @@
-# Airflow Orchestration
+# Airflow Orchestration — retail_pipeline
 
 DAG: `retail_pipeline`  
-Purpose: Run the GulfMart dbt project (stg → core → marts) every morning.
+Purpose: Orchestrate the **daily GulfMart pipeline**:
+
+ADLS → Snowflake RAW → dbt (STG / CORE / MARTS) → Slack alert on failure.
+
+---
 
 ## Location
 
-- DAG file: `airflow/dags/retail_pipeline.py`
-- dbt project mounted in the Airflow container at `/opt/airflow/dags/05_dbt_project`
+- DAG file: `06_airflow/dags/retail_pipeline.py`
+- Snowflake SQL: `04_snowflake/06_copy_into_raw.sql`
+- dbt project mounted in the Airflow container at:
 
-## Schedule
-
-- `0 6 * * *` (06:00 every day, Airflow timezone should be `Asia/Riyadh`)
-
-## Tasks
-
-1. `dbt_deps` — install dbt packages
-2. `dbt_build` — `dbt build` for `models/stg`, `models/core`, `models/marts`
-3. `dbt_docs` — `dbt docs generate`
-
-## Alerts
-
-- Slack failure alerts using connection **`slack_default`**
-- Message format documented in `08_ops/alerts/slack_alerts.md`
+  ```text
+  /opt/airflow/dags/05_dbt_project

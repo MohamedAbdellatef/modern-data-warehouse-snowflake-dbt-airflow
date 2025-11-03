@@ -1,40 +1,42 @@
--- Create two warehouses: one for ingestion (COPY), one for dbt work, one for BI queries.
+-- 01_create_warehouse.sql
+-- Create three warehouses (ingest, dbt, BI) and roles.
 -- Safe to rerun.
 
-use role ACCOUNTADMIN;
+USE ROLE ACCOUNTADMIN;
 
-create warehouse if not exists WH_INGEST
-    with warehouse_size = 'XSMALL'
-    auto_suspend  = 60
-    auto_resume   = true
-    initially_suspended = true
-    comment = 'ETL/ELT ingestion warehouse';
+-- Warehouses
+CREATE WAREHOUSE IF NOT EXISTS WH_INGEST
+    WITH WAREHOUSE_SIZE      = 'XSMALL'
+         AUTO_SUSPEND        = 60
+         AUTO_RESUME         = TRUE
+         INITIALLY_SUSPENDED = TRUE
+         COMMENT             = 'ETL/ELT ingestion warehouse';
 
-create warehouse if not exists WH_DBT
-    with warehouse_size = 'XSMALL'
-    auto_suspend  = 60
-    auto_resume   = true
-    initially_suspended = true
-    comment = 'dbt transforms, tests';
+CREATE WAREHOUSE IF NOT EXISTS WH_DBT
+    WITH WAREHOUSE_SIZE      = 'XSMALL'
+         AUTO_SUSPEND        = 60
+         AUTO_RESUME         = TRUE
+         INITIALLY_SUSPENDED = TRUE
+         COMMENT             = 'dbt transforms, tests';
 
-create warehouse if not exists WH_BI
-    with warehouse_size = 'XSMALL'
-    auto_suspend  = 60
-    auto_resume   = true
-    initially_suspended = true
-    comment = 'Business Intelligence queries';
+CREATE WAREHOUSE IF NOT EXISTS WH_BI
+    WITH WAREHOUSE_SIZE      = 'XSMALL'
+         AUTO_SUSPEND        = 60
+         AUTO_RESUME         = TRUE
+         INITIALLY_SUSPENDED = TRUE
+         COMMENT             = 'Business Intelligence queries';
 
---  create a dedicated dbt role
-create role if not exists DBT_ROLE;
-grant role DBT_ROLE to user MOHAMED;  -- change user if needed
+-- Roles
+CREATE ROLE IF NOT EXISTS DBT_ROLE;
+CREATE ROLE IF NOT EXISTS BI_ROLE;
 
--- Give DBT_ROLE the ability to use the dbt warehouse
-grant usage on warehouse WH_DBT to role DBT_ROLE;
-grant usage on warehouse WH_INGEST to role DBT_ROLE;  -- if you want dbt to ingest too
+-- NOTE:
+-- Replace <USERNAME> with your own Snowflake user, then uncomment if you want
+-- to grant these roles directly to a user.
+-- GRANT ROLE DBT_ROLE TO USER <USERNAME>;
+-- GRANT ROLE BI_ROLE  TO USER <USERNAME>;
 
--- create a dedicated BI role
-create role if not exists BI_ROLE;
-grant role BI_ROLE to user MOHAMED;  -- change user if needed
-
--- Give BI_ROLE the ability to use the BI warehouse
-grant usage on warehouse WH_BI to role BI_ROLE;
+-- Warehouses usage
+GRANT USAGE ON WAREHOUSE WH_DBT    TO ROLE DBT_ROLE;
+GRANT USAGE ON WAREHOUSE WH_INGEST TO ROLE DBT_ROLE;  -- if dbt can also ingest
+GRANT USAGE ON WAREHOUSE WH_BI     TO ROLE BI_ROLE;

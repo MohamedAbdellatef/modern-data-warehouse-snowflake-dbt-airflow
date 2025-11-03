@@ -1,51 +1,56 @@
--- One stage per container + a reusable CSV file format.
+-- 04_create_stages.sql
+-- One external stage per ADLS container + a reusable CSV file format.
 -- Safe to rerun.
 
-use role SYSADMIN;
-use database GULFMART;
+USE ROLE SYSADMIN;
+USE DATABASE GULFMART;
 
-create or replace file format GULFMART.RAW.RAW_COMMON_CSV
-  type = CSV
-  field_delimiter = ',' 
-  field_optionally_enclosed_by = '"'
-  skip_header = 1
-  empty_field_as_null = true
-  null_if = ('', 'NULL');
+-- Shared CSV file format for RAW loads
+CREATE OR REPLACE FILE FORMAT GULFMART.RAW.RAW_COMMON_CSV
+  TYPE                       = CSV
+  FIELD_DELIMITER            = ','
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER                = 1
+  EMPTY_FIELD_AS_NULL        = TRUE
+  NULL_IF                    = ('', 'NULL');
 
+-- Stages (each maps to a container)
 CREATE OR REPLACE STAGE GULFMART.RAW.CRM_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/crm/'
+  URL                 = 'azure://datafromsources.blob.core.windows.net/crm/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.OMS_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/oms/'
+  URL                 = 'azure://datafromsources.blob.core.windows.net/oms/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.PSP_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/psp/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/psp/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.ERP_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/erp/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/erp/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.FINANCE_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/finance/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/finance/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.GOV_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/gov/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/gov/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.POS_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/pos/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/pos/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
 
 CREATE OR REPLACE STAGE GULFMART.RAW.PIM_STAGE
   STORAGE_INTEGRATION = ADLS_INT
-  URL = 'azure://datafromsources.blob.core.windows.net/pim/'
-
+  URL                 = 'azure://datafromsources.blob.core.windows.net/pim/'
+  FILE_FORMAT         = GULFMART.RAW.RAW_COMMON_CSV;
