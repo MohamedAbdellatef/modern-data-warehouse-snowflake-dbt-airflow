@@ -1,7 +1,6 @@
 version: 2
 
 models:
-
   # =======================
   # DIMENSIONS
   # =======================
@@ -252,7 +251,7 @@ models:
       contract:
         enforced: true
     columns:
-      - name: order_number        # varchar
+      - name: order_number # varchar
         data_type: varchar
       - name: line_number
         data_type: number(38,0)
