@@ -1,4 +1,5 @@
 -- Daily credit guardrail with suspend at 100%
+
 use role ACCOUNTADMIN;
 
 create or replace resource monitor RM_DAILY

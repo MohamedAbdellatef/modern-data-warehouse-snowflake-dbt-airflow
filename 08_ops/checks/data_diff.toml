@@ -1,13 +1,14 @@
 [source]
 conn = "snowflake://DEV_CONN"
-table = "CORE.MARTS.FACT_ORDER_LINE"
+table = "CORE.FACT_ORDER_LINE"
 
 [target]
 conn = "snowflake://PROD_CONN"
-table = "CORE.MARTS.FACT_ORDER_LINE"
+table = "CORE.FACT_ORDER_LINE"
 
 [keys]
 columns = ["order_line_key"]
 
 [filters]
 where = "order_local_ts >= dateadd('day', -2, current_timestamp())"
+

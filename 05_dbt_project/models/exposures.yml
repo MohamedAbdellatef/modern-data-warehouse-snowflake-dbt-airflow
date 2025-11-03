@@ -1,0 +1,41 @@
+version: 2
+
+exposures:
+  - name: dashboard_store_performance
+    type: dashboard
+    maturity: high
+    url: https://bi.gulfmart.com/store-performance  # placeholder
+    owner:
+      name: Analytics Team
+      email: analytics@gulfmart.com
+    depends_on:
+      - ref('mart_store_target_vs_actual_monthly')
+      - ref('mart_store_performance_index')
+    description: "Monthly store performance: target vs actual, performance index."
+
+  - name: dashboard_sales_overview
+    type: dashboard
+    maturity: high
+    url: https://bi.gulfmart.com/sales-overview  # placeholder
+    owner:
+      name: Analytics Team
+      email: analytics@gulfmart.com
+    depends_on:
+      - ref('mart_monthly_orders_by_store')
+      - ref('mart_net_sales_by_country_monthly')
+      - ref('mart_channel_mix_monthly')
+      - ref('mart_aov_monthly')
+    description: "Sales overview: orders, net revenue, channel mix, AOV."
+
+  - name: dashboard_customer_retention
+    type: dashboard
+    maturity: medium
+    url: https://bi.gulfmart.com/customer-retention  # placeholder
+    owner:
+      name: CRM Team
+      email: crm@gulfmart.com
+    depends_on:
+      - ref('mart_active_customers_monthly')
+      - ref('mart_repeat_purchase_rate_monthly')
+      - ref('mart_refund_rate_amount_monthly')
+    description: "Customer activity, active vs repeat, and refund behaviour."

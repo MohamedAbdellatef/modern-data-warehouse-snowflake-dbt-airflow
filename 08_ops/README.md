@@ -2,14 +2,14 @@
 
 This folder documents how the **retail daily pipeline** runs in production.
 
-- **Runbooks/**: How to operate and recover.
-- **SLO/**: Freshness and timeliness targets (Asia/Riyadh).
-- **Monitors/**: Snowflake resource monitor, WH policies, query tags.
-- **Cost/**: Ready SQL to view credits.
-- **Lineage/**: OpenLineage example env.
-- **Data_contracts/**: Contract shapes for critical models.
-- **Checks/**: Data-diff config + smoke queries.
-- **Alerts/**: Slack alert notes.
+- **alerts/**: Slack alert patterns and expectations.
+- **checks/**: Data-diff config + SQL smoke checks.
+- **cost/**: Ready-to-run Snowflake credit / cost queries.
+- **data_contracts/**: Schema contracts for critical models (e.g. `fact_order_line`).
+- **lineage/**: OpenLineage example env configuration.
+- **monitors/**: Snowflake resource monitor + warehouse and query-tagging policies.
+- **runbooks/**: How to operate and recover the `retail_pipeline` DAG.
+- **slo/**: Freshness, timeliness and reliability targets.
 
-Owners: Data Engineering  
-SLA: DAG finishes by **06:30 Asia/Riyadh**
+**Owners**: Data Engineering  
+**SLA**: DAG `retail_pipeline` finishes by **06:30 Asia/Riyadh** on business days.

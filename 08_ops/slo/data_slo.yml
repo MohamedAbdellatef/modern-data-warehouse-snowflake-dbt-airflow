@@ -1,8 +1,21 @@
+
+pipeline: retail_daily
+timezone: Asia/Riyadh
+
 freshness:
   source: RAW.OMS.ORDERS
-  warn_after: 12h
-  error_after: 24h
+  warn_after_hours: 12
+  error_after_hours: 24
+
 timeliness:
-  dag_finish_by: "06:30 Asia/Riyadh"
+  dag_id: retail_pipeline
+  schedule_cron: "0 6 * * *"      # 06:00 Asia/Riyadh
+  must_finish_by_local: "06:30"   # local time
+
 reliability:
-  dbt_build_success_30d: ">= 99.5%"
+  dbt_build_success_30d: ">=99.5"   # percent of successful nightly runs
+  airflow_dag_success_30d: ">=99.0"
+
+owners:
+  team: data-eng
+  slack_channel: "#data-alerts"
