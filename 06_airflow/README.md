@@ -1,9 +1,24 @@
-# gulfmart_daily_ingestion DAG
+# Airflow Orchestration
 
-This DAG represents the production ingestion flow:
-1. Source systems land daily CSV snapshots into Azure Data Lake Storage Gen2 (I am using my real ADLS account with an actual container).
-2. Snowflake has an external stage that points to that ADLS container.
-3. Airflow triggers Snowflake `COPY INTO` to load that day's partition (`load_date={{ ds }}`) into the RAW schema.
-4. After RAW is loaded, downstream steps (dbt STG → CORE → MARTS) can run for transformation and KPI serving.
+DAG: `retail_pipeline`  
+Purpose: Run the GulfMart dbt project (stg → core → marts) every morning.
 
-This pattern (ADLS landing → Snowflake RAW → dbt) is commonly used in retail / payments / e-commerce data teams in KSA and UAE.
+## Location
+
+- DAG file: `airflow/dags/retail_pipeline.py`
+- dbt project mounted in the Airflow container at `/opt/airflow/dags/05_dbt_project`
+
+## Schedule
+
+- `0 6 * * *` (06:00 every day, Airflow timezone should be `Asia/Riyadh`)
+
+## Tasks
+
+1. `dbt_deps` — install dbt packages
+2. `dbt_build` — `dbt build` for `models/stg`, `models/core`, `models/marts`
+3. `dbt_docs` — `dbt docs generate`
+
+## Alerts
+
+- Slack failure alerts using connection **`slack_default`**
+- Message format documented in `08_ops/alerts/slack_alerts.md`

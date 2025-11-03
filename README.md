@@ -1,56 +1,111 @@
-# modern-data-warehouse-snowflake-dbt-airflow
-## 🏗️ High-Level Architecture
-![Data Architecture](00_overview/architecture_diagram.gif)
+# Modern Retail Analytics Warehouse (Snowflake + dbt + Airflow)
 
-# GulfMart Modern Data Warehouse (Snowflake + dbt + Airflow)
+End-to-end modern data warehouse for a fictional retailer **GulfMart**:
 
-End-to-end analytics engineering project for GulfMart retail:
-- **Sources**: OMS, CRM, PIM, PSP, Finance, FX, VAT
-- **Warehouse**: Snowflake
-- **Transformations**: dbt
-- **Orchestration**: Airflow
-- **CI**: GitHub Actions
+- **Ingestion** → RAW Snowflake tables (OMS, CRM, PSP, PIM, Finance, FX, VAT)
+- **Transform** → `dbt` (staging → core dims/facts → marts)
+- **Orchestrate** → Airflow DAG `retail_pipeline`
+- **Operate** → SLOs, data contracts, cost monitoring, lineage & runbooks
+- **Consume** → BI dashboards on top of curated marts (Power BI / Looker / Tableau)
 
----
-
-## Architecture
-
-1. **Raw Layer**: `raw.*` Snowflake schemas populated from CSV / ingestion.
-2. **Staging Layer (`stg_`)**:
-   - One model per source table (e.g. `stg_orders`, `stg_order_items`, `stg_customers`).
-   - Standardized types, codes, timestamps, booleans.
-3. **Core Layer (`dim_` / `fact_`)**:
-   - SCD2 dimensions: `dim_customer`, `dim_store`, `dim_product`.
-   - Static dimensions: `dim_date`, `dim_currency`, `dim_channel`, `dim_payment`.
-   - Transactional facts: `fact_order`, `fact_order_line`.
-4. **Marts (`mart_`)**:
-   - `mart_monthly_orders_by_store`
-   - `mart_net_sales_by_country_monthly`
-   - `mart_channel_mix_monthly`
-   - `mart_aov_monthly`
-   - `mart_active_customers_monthly`
-   - `mart_repeat_purchase_rate_monthly`
-   - `mart_refund_rate_amount_monthly`
-   - `mart_store_target_vs_actual_monthly`
-   - `mart_store_performance_index`
+This repo is designed as a portfolio-ready, 10/10 example of a modern analytics stack for retail.
 
 ---
 
-## How to run dbt
+## 1. Architecture
 
-From the project root:
+**Layers**
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+1. **01_data_lake** – Logical landing zone for CSV/external files (documentation only).
+2. **04_snowflake** – Warehouse objects, roles, warehouses & storage design.
+3. **05_dbt_project** – All transformations:
+   - `stg` models (raw → clean, typed, tested).
+   - `core` models:
+     - Slowly-changing **dimensions** (customer, store, product, date, currency, channel, payment).
+     - **facts**: `fact_order_line`, `fact_order`, `fact_customer_monthly_activity`, `fact_store_target_monthly`.
+   - `marts`:
+     - Sales, customers, returns, payments, targets vs actuals.
+4. **06_airflow** – DAG `retail_pipeline` that runs dbt daily.
+5. **07_bi** – BI models / dashboard definitions (documentation, not tool-specific).
+6. **08_ops** – Data contracts, checks, monitors, SLOs, cost queries, runbooks.
+7. **09_ci_cd** – GitHub Actions workflow + notes for automated testing.
+8. **10_docs** – Extra design docs / exported diagrams.
 
-# Install dbt packages
-dbt deps
+Core design artifacts live under `03_design`:
 
-# Compile & run
-dbt run
-dbt test
+- **Bus matrix** for the three business processes.
+- **Grain cards** for each fact.
+- **Dim/fact ERD** for the core warehouse.
 
-# Only marts
-dbt run -s models/marts/*
-dbt test -s models/marts/*
+---
+
+## 2. Business Processes & Facts
+
+### 2.1 Order to Cash
+
+- **Facts**
+  - `CORE.fact_order_line` – 1 row per `order_number × line_number`.
+  - `CORE.fact_order` – 1 row per `order_number`.
+- **Conformed dimensions**
+  - `dim_customer`, `dim_store`, `dim_product`, `dim_channel`, `dim_currency`, `dim_date`, `dim_payment`.
+
+Example KPIs:
+- Gross / net sales ex-VAT in AED.
+- Orders, lines, quantity.
+- AOV, channel mix, store performance.
+
+### 2.2 Customer Activity
+
+- **Fact**
+  - `CORE.fact_customer_monthly_activity` – 1 row per `customer × calendar_month`.
+- Flags & metrics:
+  - `is_active_customer_flag`, `is_repeat_customer_flag`,
+  - orders count, net amount AED per month.
+
+### 2.3 Store Target vs Actual
+
+- **Fact**
+  - `CORE.fact_store_target_monthly` – 1 row per `store × calendar_month`.
+- Joins with `fact_order` to compute:
+  - Target vs actual net sales, variance amount, variance %.
+
+Marts in `05_dbt_project/models/marts` map directly to QNF cards:
+- Monthly orders by store, net sales by country, AOV, channel mix,
+- active customers, repeat rate, refund rate, store performance index,
+- target vs actual revenue gap.
+
+---
+
+## 3. Repo Layout
+
+```text
+.
+├── 00_overview/          # Problem statement, high-level architecture
+├── 01_data_lake/         # Ingestion assumptions, file layout
+├── 02_business/          # Business processes & KPIs (qnf, process docs)
+├── 03_design/            # Bus matrix, grain cards, ERD diagrams
+├── 04_snowflake/         # DDLs, roles, warehouses, storage notes
+├── 05_dbt_project/       # dbt project (models, tests, macros, snapshots)
+│   ├── models/
+│   │   ├── stg/          # staging models from RAW
+│   │   ├── core/
+│   │   │   ├── dim/      # dim_* models
+│   │   │   └── facts/    # fact_* models
+│   │   └── marts/        # metric-ready marts
+│   ├── snapshots/        # SCD snapshots: customers, products, stores
+│   ├── macros/           # helper macros (e.g. casting helpers)
+│   └── schema.yml        # tests & contracts
+├── 06_airflow/
+│   ├── dags/
+│   │   └── retail_pipeline.py  # main DAG
+│   └── README.md
+├── 07_bi/                # dashboard specs / mockups
+├── 08_ops/               # ops: contracts, cost, checks, monitors, SLO, runbooks
+├── 09_ci_cd/
+│   └── README.md         # describes CI workflow (dbt build on PRs)
+├── 10_docs/              # extra docs (optional)
+├── .github/workflows/
+│   └── dbt_ci.yml        # CI: dbt build + tests
+├── .pre-commit-config.yaml
+├── LICENSE
+└── README.md             # (this file)

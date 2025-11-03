@@ -1,12 +1,26 @@
-# CI/CD
+# CI/CD for GulfMart Warehouse
 
-Workflows:
-- **ci_pr.yml** — Runs on Pull Requests. Lints SQL, `dbt deps/seed/build`, uploads artifacts (docs, run_results, DQ report).
-- **release_prod.yml** — Manual promotion to PROD target.
-- **docs_pages.yml** — Publishes `dbt docs` to GitHub Pages.
+## GitHub Actions
 
-Secrets required:
-- `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PASSWORD`.
+Main pipeline: `.github/workflows/dbt_ci.yml`
 
-Local profiles template: `profiles.yml.example`.  
-Lint rules: `sqlfluff.cfg`. Pre-commit hook: `pre-commit-config.yaml`.
+- Triggers on `push` and `pull_request` to `main`.
+- Uses `.dbt/profiles.yml` with Snowflake credentials from GitHub Actions secrets.
+- Steps:
+  1. Install Python + dependencies (`requirements.txt`).
+  2. `dbt parse` to validate project.
+  3. `dbt build --target dev --fail-fast` to run models + tests.
+
+## Pre-commit
+
+Config: `.pre-commit-config.yaml`
+
+- Basic hygiene: trailing whitespace, EOF fixer, YAML/JSON checks.
+- `sqlfluff` for Snowflake SQL style and linting.
+
+Usage:
+
+```bash
+pip install pre-commit sqlfluff sqlfluff-templater-dbt
+pre-commit install
+pre-commit run --all-files
