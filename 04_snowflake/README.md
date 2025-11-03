@@ -25,9 +25,6 @@ This folder contains idempotent SQL to stand up Snowflake for the project.
    - Loads from ADLS → RAW using query-based COPY to capture.  
    - No transformations are applied here; cleaning happens in dbt/STG.
 
-## Notes
-
-- Keep RAW simple; apply casting/standardization in `dbt` staging models.  
-- If a COPY returns 0 files processed, run `LIST @<stage>` and verify your folder layout patterns.  
+## Notes  
 - Re-running COPY is safe; de-duplication is handled later in STG using keys & tests.
 

@@ -167,7 +167,6 @@ models:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [order_number, line_number]
 
-
   - name: stg_orders
     description: "Order headers (per order)."
     columns:
@@ -219,7 +218,7 @@ models:
               arguments:
                 to: ref('stg_orders')
                 field: order_number
-                where:  "payment_status = 'COMPLETED' AND order_number <> 'ORD99999999'"
+                where: "payment_status = 'COMPLETED' AND order_number <> 'ORD99999999'"
 
       - name: store_id
         tests:
@@ -299,7 +298,6 @@ models:
               arguments:
                 to: ref('stg_orders')
                 field: order_number
-                where: "payment_status = 'COMPLETED' AND payment_type = 'CAPTURE' AND order_number <> 'ORD99999999'"
 
       - name: store_id
         tests:
