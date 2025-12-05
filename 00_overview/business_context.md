@@ -75,7 +75,6 @@ Deliver a **single trusted source of truth** for Sales/Revenue (ex-VAT) and Cust
 
 ## 6. Dataset & Assumptions
 
-This is a **portfolio project**, not real production data.
 
 - **Sources:** CSV files that simulate POS, e-commerce, and reference data.
 - **Landing:** Files are extracted via **Airflow** and landed in **Azure Data Lake Storage Gen2**.
